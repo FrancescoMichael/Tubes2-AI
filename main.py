@@ -1,5 +1,6 @@
 import numpy as np
 from collections import Counter
+from sklearn.neighbors import BallTree
 from sklearn import datasets
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
@@ -9,41 +10,28 @@ from sklearn.tree import DecisionTreeClassifier
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+
 class KNNScratch:
     def __init__(self, neighbors=5, metric='euclidean', p=2):
         self.neighbors = neighbors
         self.metric = metric
         self.p = p
-        
+
     def fit(self, X_train, y_train):
         self.X_train = X_train.to_numpy() if hasattr(X_train, 'to_numpy') else X_train
         self.y_train = y_train.to_numpy() if hasattr(y_train, 'to_numpy') else y_train
 
-    def distance(self, x1, x2):
-        if self.metric == 'euclidean':
-            return np.sqrt(np.sum(np.square(x1 - x2))) 
-        elif self.metric == 'manhattan':
-            return np.sum(np.abs(x1 - x2)) 
-        elif self.metric == 'minkowski':
-            return np.sum(np.abs(x1 - x2) ** self.p) ** (1 / self.p)
-        else:
-            raise ValueError("Unsupported metric: choose 'euclidean', 'manhattan', or 'minkowski'.")
+        self.tree = BallTree(self.X_train, metric=self.metric)
 
     def predict(self, X_test):
         X_test = X_test.to_numpy() if hasattr(X_test, 'to_numpy') else X_test
 
-        if self.metric == 'euclidean':
-            distances = np.sqrt(((X_test[:, None, :] - self.X_train[None, :, :]) ** 2).sum(axis=2))
-        elif self.metric == 'manhattan':
-            distances = np.abs(X_test[:, None, :] - self.X_train[None, :, :]).sum(axis=2)
-        elif self.metric == 'minkowski':
-            distances = (np.abs(X_test[:, None, :] - self.X_train[None, :, :]) ** self.p).sum(axis=2) ** (1 / self.p)
-        else:
-            raise ValueError("Unsupported metric: choose 'euclidean', 'manhattan', or 'minkowski'.")
-
-        k_neighbors_indexes = np.argsort(distances, axis=1)[:, :self.neighbors]
-        k_neighbors_labels = self.y_train[k_neighbors_indexes]
-        predictions = [Counter(row).most_common(1)[0][0] for row in k_neighbors_labels]
+        predictions = []
+        for x_test in X_test:
+            distances, indices = self.tree.query([x_test], k=self.neighbors)
+            k_nearest_labels = self.y_train[indices[0]] 
+            most_common = Counter(k_nearest_labels).most_common(1)
+            predictions.append(most_common[0][0])
 
         return np.array(predictions)
 
