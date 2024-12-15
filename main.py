@@ -158,29 +158,29 @@ class DecisionTreeClassifierScratch:
         """Predict multiple instances using the decision tree."""
         return np.array([self.predict_one(x, self.tree) for x in X])
 
-iris = datasets.load_iris()
-X = iris.data 
-y = iris.target
+# iris = datasets.load_iris()
+# X = iris.data 
+# y = iris.target
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3)
+# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3)
 
-print("kNN: ")
-print("Scratch: ")
-knn_scratch = KNNScratch(neighbors=3, metric='euclidean')
-knn_scratch.fit(X_train, y_train)
-knn_scratch_pred = knn_scratch.predict(X_test)
-print("Accuracy: ", accuracy_score(y_test, knn_scratch_pred))
-print("Classification Report: \n", classification_report(y_test, knn_scratch_pred))
+# print("kNN: ")
+# print("Scratch: ")
+# knn_scratch = KNNScratch(neighbors=3, metric='euclidean')
+# knn_scratch.fit(X_train, y_train)
+# knn_scratch_pred = knn_scratch.predict(X_test)
+# print("Accuracy: ", accuracy_score(y_test, knn_scratch_pred))
+# print("Classification Report: \n", classification_report(y_test, knn_scratch_pred))
 
-conf_matrix = confusion_matrix(y_test, knn_scratch_pred)
+# conf_matrix = confusion_matrix(y_test, knn_scratch_pred)
 
-plt.figure(figsize=(8, 6))
-sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', 
-            xticklabels=iris.target_names, yticklabels=iris.target_names)
-plt.ylabel('Actual')
-plt.xlabel('Predicted')
-plt.title('Confusion Matrix')
-plt.show()
+# plt.figure(figsize=(8, 6))
+# sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', 
+#             xticklabels=iris.target_names, yticklabels=iris.target_names)
+# plt.ylabel('Actual')
+# plt.xlabel('Predicted')
+# plt.title('Confusion Matrix')
+# plt.show()
 
 
 
