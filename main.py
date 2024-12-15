@@ -67,58 +67,46 @@ class GaussianNaiveBayesScratch:
             likelihood += prior
             likelihoods.append(likelihood)
         return self.classes[np.argmax(likelihoods)]
-
+    
 class DecisionTreeClassifierScratch:
     def __init__(self, max_depth=None):
         self.max_depth = max_depth
         self.tree = None
-    
-    def entropy(self, y):
-        """Calculate the entropy of a dataset."""
-        classes, counts = np.unique(y, return_counts=True)
-        probabilities = counts / len(y)
-        return -np.sum(probabilities * np.log2(probabilities + 1e-9))  # Added epsilon to avoid log(0)
 
-    def information_gain(self, y, y_left, y_right):
-        """Calculate information gain from a split."""
-        parent_entropy = self.entropy(y)
-        n = len(y)
-        n_left, n_right = len(y_left), len(y_right)
-        if n_left == 0 or n_right == 0:
-            return 0
-        child_entropy = (n_left / n) * self.entropy(y_left) + (n_right / n) * self.entropy(y_right)
-        return parent_entropy - child_entropy
+    def gini(self, y):
+        classes, counts = np.unique(y, return_counts=True)
+        p = counts / len(y)
+        return 1 - np.sum(p ** 2)
 
     def split(self, X, y, feature_index, threshold):
-        """Split the dataset into left and right based on a threshold."""
         left_idxs = X[:, feature_index] <= threshold
         right_idxs = X[:, feature_index] > threshold
         return X[left_idxs], X[right_idxs], y[left_idxs], y[right_idxs]
 
     def best_split(self, X, y):
-        """Find the best feature and threshold to split on using information gain."""
-        best_gain = -1
+        best_gini = float('inf')
         best_index, best_threshold = None, None
 
         for feature_index in range(X.shape[1]):
             thresholds = np.unique(X[:, feature_index])
             for threshold in thresholds:
                 X_left, X_right, y_left, y_right = self.split(X, y, feature_index, threshold)
-                
+
                 if len(y_left) == 0 or len(y_right) == 0:
                     continue
 
-                gain = self.information_gain(y, y_left, y_right)
+                gini_left = self.gini(y_left)
+                gini_right = self.gini(y_right)
+                weighted_gini = (len(y_left) * gini_left + len(y_right) * gini_right) / len(y)
 
-                if gain > best_gain:
-                    best_gain = gain
+                if weighted_gini < best_gini:
+                    best_gini = weighted_gini
                     best_index = feature_index
                     best_threshold = threshold
 
         return best_index, best_threshold
 
     def build_tree(self, X, y, depth=0):
-        """Recursively build the decision tree."""
         n_samples, n_features = X.shape
         n_labels = len(np.unique(y))
 
@@ -137,11 +125,9 @@ class DecisionTreeClassifierScratch:
         return {'feature_index': feature_index, 'threshold': threshold, 'left': left, 'right': right}
 
     def fit(self, X, y):
-        """Build the decision tree from the training data."""
         self.tree = self.build_tree(X, y)
 
     def predict_one(self, x, tree):
-        """Predict a single instance using the decision tree."""
         if not isinstance(tree, dict):
             return tree
         if x[tree['feature_index']] <= tree['threshold']:
@@ -150,7 +136,6 @@ class DecisionTreeClassifierScratch:
             return self.predict_one(x, tree['right'])
 
     def predict(self, X):
-        """Predict multiple instances using the decision tree."""
         return np.array([self.predict_one(x, self.tree) for x in X])
 
 # iris = datasets.load_iris()
