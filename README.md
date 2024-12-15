@@ -12,7 +12,6 @@ Pembelajaran mesin merupakan salah satu cabang dari kecerdasan buatan yang memun
 - Matplotlib
 - Pandas
 - Numpy
-- Tkinter
 - SKlearn
 - Scipy
 
