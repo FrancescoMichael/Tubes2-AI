@@ -31,16 +31,20 @@ class KNNScratch:
 
     def predict(self, X_test):
         X_test = X_test.to_numpy() if hasattr(X_test, 'to_numpy') else X_test
-        
-        predictions = []
 
-        for x_test in X_test:
-            distances = [self.distance(x_test, x_train) for x_train in self.X_train]
-            sorted_distances_indexes = np.argsort(distances)[:self.neighbors]
-            k_nearest = [self.y_train[i] for i in sorted_distances_indexes]
-            most_class = Counter(k_nearest).most_common(1)
-            predictions.append(most_class[0][0])
-        
+        if self.metric == 'euclidean':
+            distances = np.sqrt(((X_test[:, None, :] - self.X_train[None, :, :]) ** 2).sum(axis=2))
+        elif self.metric == 'manhattan':
+            distances = np.abs(X_test[:, None, :] - self.X_train[None, :, :]).sum(axis=2)
+        elif self.metric == 'minkowski':
+            distances = (np.abs(X_test[:, None, :] - self.X_train[None, :, :]) ** self.p).sum(axis=2) ** (1 / self.p)
+        else:
+            raise ValueError("Unsupported metric: choose 'euclidean', 'manhattan', or 'minkowski'.")
+
+        k_neighbors_indexes = np.argsort(distances, axis=1)[:, :self.neighbors]
+        k_neighbors_labels = self.y_train[k_neighbors_indexes]
+        predictions = [Counter(row).most_common(1)[0][0] for row in k_neighbors_labels]
+
         return np.array(predictions)
 
 class GaussianNaiveBayesScratch:
