@@ -10,14 +10,14 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 class KNNScratch:
-    def __init__(self, neighbors=5, metric='euclidean', p=5):
+    def __init__(self, neighbors=5, metric='euclidean', p=2):
         self.neighbors = neighbors
         self.metric = metric
         self.p = p
         
     def fit(self, X_train, y_train):
-        self.X_train = X_train
-        self.y_train = y_train
+        self.X_train = X_train.to_numpy() if hasattr(X_train, 'to_numpy') else X_train
+        self.y_train = y_train.to_numpy() if hasattr(y_train, 'to_numpy') else y_train
 
     def distance(self, x1, x2):
         if self.metric == 'euclidean':
@@ -26,8 +26,12 @@ class KNNScratch:
             return np.sum(np.abs(x1 - x2)) 
         elif self.metric == 'minkowski':
             return np.sum(np.abs(x1 - x2) ** self.p) ** (1 / self.p)
-        
+        else:
+            raise ValueError("Unsupported metric: choose 'euclidean', 'manhattan', or 'minkowski'.")
+
     def predict(self, X_test):
+        X_test = X_test.to_numpy() if hasattr(X_test, 'to_numpy') else X_test
+        
         predictions = []
 
         for x_test in X_test:
@@ -37,7 +41,7 @@ class KNNScratch:
             most_class = Counter(k_nearest).most_common(1)
             predictions.append(most_class[0][0])
         
-        return predictions
+        return np.array(predictions)
 
 class GaussianNaiveBayesScratch:
     def gauss_dist(self, class_idx, x):
@@ -90,7 +94,6 @@ class DecisionTreeClassifierScratch:
         n_left, n_right = len(y_left), len(y_right)
         if n_left == 0 or n_right == 0:
             return 0
-        # Weighted average of the entropy of the children
         child_entropy = (n_left / n) * self.entropy(y_left) + (n_right / n) * self.entropy(y_right)
         return parent_entropy - child_entropy
 
